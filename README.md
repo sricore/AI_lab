@@ -1,4 +1,5 @@
-# AI_lab<!DOCTYPE html>
+# AI_lab
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
