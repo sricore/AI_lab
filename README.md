@@ -1,0 +1,394 @@
+# AI_lab<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockStarter | Virtual Stock Portfolio</title>
+
+<style>
+*{box-sizing:border-box;font-family:Inter,Segoe UI,sans-serif}
+
+body{
+  margin:0;
+  background:#0b1220;
+  color:#e5e7eb;
+  font-size:15px;
+}
+
+/* NAVBAR */
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 14px;
+  background:#020617;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+.brand{font-size:18px;font-weight:700}
+.brand span{color:#3b82f6}
+.nav-right button{
+  padding:6px 10px;
+  font-size:13px;
+  border-radius:8px;
+}
+
+/* CONTAINER */
+.container{padding:12px;max-width:100%;margin:auto}
+
+/* CARDS */
+.card{
+  background:#111827;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.35)
+}
+.card h3{margin-top:0;font-size:17px}
+
+/* STATS */
+.stats{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+.stat{
+  background:#020617;
+  padding:12px;
+  border-radius:12px;
+}
+.stat h4{margin:0;font-size:12px;color:#9ca3af}
+.stat p{margin:6px 0 0;font-size:18px;font-weight:700}
+
+/* PROFIT LOSS */
+.profit{color:#22c55e;font-weight:700}
+.loss{color:#ef4444;font-weight:700}
+.neutral{color:#9ca3af;font-weight:700}
+
+/* BUTTONS */
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  font-size:15px;
+  font-weight:600;
+  background:#3b82f6;
+  color:#fff;
+  cursor:pointer;
+}
+button.secondary{background:#1f2937}
+button.sell{background:#ef4444}
+button:hover{opacity:.9}
+
+/* LIST */
+.item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid #1f2937;
+  flex-wrap:wrap;
+}
+.item button{
+  width:auto;
+  padding:8px 14px;
+  font-size:14px;
+}
+
+/* PRICE */
+.price-up{color:#22c55e;font-weight:600}
+.price-down{color:#ef4444;font-weight:600}
+
+/* INPUT */
+input,textarea{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:14px;
+}
+
+/* Q&A */
+.qa-item{
+  background:#020617;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+.qa-q{font-weight:600;font-size:14px}
+.qa-role{font-size:12px;color:#6b7280}
+.qa-a{
+  margin-top:8px;
+  padding:10px;
+  border-left:3px solid #3b82f6;
+  background:#0b1220;
+  border-radius:8px;
+  font-size:14px;
+}
+
+/* DESKTOP */
+@media(min-width:768px){
+  .container{max-width:1200px;padding:20px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  button{width:auto}
+}
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+  <div class="brand">Stock<span>Starter</span></div>
+  <div class="nav-right">
+    <button class="secondary" onclick="toggleTheme()">🌗</button>
+    <button onclick="googleLogin()">Login</button>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- STATS -->
+<div class="card stats">
+  <div class="stat"><h4>User</h4><p id="user">Guest Student</p></div>
+  <div class="stat"><h4>Balance</h4><p>₹<span id="balance">10000</span></p></div>
+  <div class="stat"><h4>Portfolio</h4><p>₹<span id="portfolioValue">0</span></p></div>
+  <div class="stat">
+    <h4>P / L</h4>
+    <p>₹<span id="pl" class="neutral">0</span> <small id="plPercent">(0%)</small></p>
+  </div>
+</div>
+
+<!-- MARKET -->
+<div class="card">
+  <h3>Market Prices</h3>
+  <div id="stocks"></div>
+</div>
+
+<!-- PORTFOLIO -->
+<div class="card">
+  <h3>Your Portfolio</h3>
+  <div id="portfolio">Start by buying your first stock 📈</div>
+</div>
+
+<!-- AI -->
+<div class="card">
+  <h3>AI Insight (Gemini)</h3>
+  <button onclick="geminiExplain()">Generate Insight</button>
+  <p id="aiText" style="margin-top:10px;color:#9ca3af"></p>
+</div>
+
+<!-- QUIZ (UPDATED) -->
+<div class="card">
+  <h3>Stock Market Quiz</h3>
+  <p id="quizQuestion"></p>
+  <button id="opt1" onclick="answerQuiz(0)"></button>
+  <button id="opt2" class="sell" onclick="answerQuiz(1)"></button>
+  <p id="quizResult" style="margin-top:10px;font-weight:600"></p>
+  <p id="quizReason" style="margin-top:6px;color:#9ca3af"></p>
+</div>
+
+<!-- Q&A -->
+<div class="card">
+  <h3>Investor Q&A</h3>
+  <input id="questionInput" placeholder="Ask your investment question...">
+  <button style="margin-top:8px" onclick="addQuestion()">Submit</button>
+  <div id="qaSection" style="margin-top:14px"></div>
+</div>
+
+</div>
+
+<footer style="text-align:center;padding:20px;color:#6b7280">
+  Educational Project • Not real trading • Powered by Google Tech
+</footer>
+
+<script>
+let startMoney=10000;
+let balance=10000;
+let portfolio={};
+let questions=[];
+
+const STOCKS=[
+  {name:"TCS",price:3500},
+  {name:"Infosys",price:1500},
+  {name:"Reliance",price:2800},
+  {name:"HDFC",price:1600},
+  {name:"Tata Motors",price:900}
+];
+
+function googleLogin(){document.getElementById("user").innerText="Google User";}
+function toggleTheme(){}
+
+function loadStocks(){
+  const s=document.getElementById("stocks");
+  s.innerHTML="";
+  STOCKS.forEach(st=>{
+    s.innerHTML+=`
+      <div class="item">
+        <span>${st.name} —
+          <b id="${st.name}">₹${st.price}</b>
+          <span id="${st.name}_trend"></span>
+        </span>
+        <button onclick="buy('${st.name}',${st.price})">Buy</button>
+      </div>`;
+  });
+}
+
+function buy(name,price){
+  if(balance<price)return alert("Insufficient balance");
+  balance-=price;
+  portfolio[name]=(portfolio[name]||0)+1;
+  updateUI();
+}
+
+function sell(name,price){
+  portfolio[name]--;
+  balance+=price;
+  if(portfolio[name]===0)delete portfolio[name];
+  updateUI();
+}
+
+function updateUI(){
+  document.getElementById("balance").innerText=balance;
+  let value=0;
+  const p=document.getElementById("portfolio");
+  p.innerHTML="";
+  for(let s in portfolio){
+    const pr=STOCKS.find(x=>x.name===s).price;
+    value+=pr*portfolio[s];
+    p.innerHTML+=`
+      <div class="item">
+        <span>${s} × ${portfolio[s]}</span>
+        <button class="sell" onclick="sell('${s}',${pr})">Sell</button>
+      </div>`;
+  }
+  if(p.innerHTML==="")p.innerText="Start by buying your first stock 📈";
+  document.getElementById("portfolioValue").innerText=value;
+
+  const pl=balance+value-startMoney;
+  const plEl=document.getElementById("pl");
+  plEl.innerText=pl;
+  plEl.className=pl>0?"profit":pl<0?"loss":"neutral";
+  document.getElementById("plPercent").innerText=`(${((pl/startMoney)*100).toFixed(2)}%)`;
+}
+
+function geminiExplain(){
+  document.getElementById("aiText").innerText=
+  "Diversify your investments and focus on long-term growth.";
+}
+
+/* QUIZ LOGIC */
+const quizData=[
+  {
+    q:"Buying a stock means:",
+    options:["Owning part of a company","Taking a loan"],
+    correct:0,
+    reasonRight:"Correct! Stocks represent ownership in a company.",
+    reasonWrong:"Wrong. Buying stock is not borrowing money."
+  },
+  {
+    q:"Why is diversification important?",
+    options:["To reduce risk","To increase taxes"],
+    correct:0,
+    reasonRight:"Correct! Diversification spreads risk.",
+    reasonWrong:"Wrong. Diversification has nothing to do with taxes."
+  },
+  {
+    q:"Which is safer for beginners?",
+    options:["Large-cap stocks","Penny stocks"],
+    correct:0,
+    reasonRight:"Correct! Large-cap stocks are more stable.",
+    reasonWrong:"Wrong. Penny stocks are highly risky."
+  },
+  {
+    q:"Long-term investors should focus on:",
+    options:["Daily price movement","Company fundamentals"],
+    correct:1,
+    reasonRight:"Correct! Fundamentals matter long-term.",
+    reasonWrong:"Wrong. Short-term price moves can be misleading."
+  }
+];
+
+let currentQuiz=0;
+
+function loadQuiz(){
+  const q=quizData[currentQuiz];
+  document.getElementById("quizQuestion").innerText=q.q;
+  document.getElementById("opt1").innerText=q.options[0];
+  document.getElementById("opt2").innerText=q.options[1];
+  document.getElementById("quizResult").innerText="";
+  document.getElementById("quizReason").innerText="";
+}
+
+function answerQuiz(i){
+  const q=quizData[currentQuiz];
+  if(i===q.correct){
+    document.getElementById("quizResult").innerText="✅ Correct";
+    document.getElementById("quizReason").innerText=q.reasonRight;
+  }else{
+    document.getElementById("quizResult").innerText="❌ Wrong";
+    document.getElementById("quizReason").innerText=q.reasonWrong;
+  }
+  currentQuiz=(currentQuiz+1)%quizData.length;
+  setTimeout(loadQuiz,2500);
+}
+
+/* Q&A */
+function addQuestion(){
+  const q=document.getElementById("questionInput").value.trim();
+  if(!q)return;
+  questions.push({q,ans:null});
+  document.getElementById("questionInput").value="";
+  renderQA();
+}
+function answerQuestion(i){
+  const ans=document.getElementById("ans_"+i).value.trim();
+  if(!ans)return;
+  questions[i].ans=ans;
+  renderQA();
+}
+function renderQA(){
+  const qa=document.getElementById("qaSection");
+  qa.innerHTML="";
+  questions.forEach((x,i)=>{
+    qa.innerHTML+=`
+      <div class="qa-item">
+        <div class="qa-q">❓ ${x.q}</div>
+        <div class="qa-role">Student</div>
+        ${
+          x.ans
+          ? `<div class="qa-a"><b>Professional Investor ✅</b><br>${x.ans}</div>`
+          : `<textarea id="ans_${i}" placeholder="Professional Investor answer..."></textarea>
+             <button style="margin-top:6px" onclick="answerQuestion(${i})">Answer</button>`
+        }
+      </div>`;
+  });
+}
+
+/* PRICE SIMULATION */
+setInterval(()=>{
+  STOCKS.forEach(st=>{
+    let change=Math.floor(Math.random()*40-20);
+    st.price=Math.max(100,st.price+change);
+    const el=document.getElementById(st.name);
+    const trend=document.getElementById(st.name+"_trend");
+    if(el){
+      el.innerText="₹"+st.price;
+      el.className=change>=0?"price-up":"price-down";
+      trend.innerText=change>=0?" ▲":" ▼";
+      trend.style.color=change>=0?"#22c55e":"#ef4444";
+    }
+  });
+  updateUI();
+},3000);
+
+loadStocks();
+loadQuiz();
+</script>
+
+</body>
+</html>
