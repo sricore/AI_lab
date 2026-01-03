@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Stock Learning</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+
+body{margin:0;background:#0f172a;color:#e5e7eb}
+header{background:#020617;padding:16px;text-align:center;font-size:22px;font-weight:bold}
+header span{color:#22c55e}
+.container{max-width:1100px;margin:auto;padding:16px}
+.card{background:#020617;padding:16px;border-radius:12px;margin-bottom:16px}
+
+button{
+  padding:8px 12px;border:none;border-radius:8px;
+  background:#22c55e;color:#020617;
+  font-weight:bold;cursor:pointer
+}
+button.secondary{background:#3b82f6;color:white}
+button.sell{background:#ef4444;color:white}
+
+.stock{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid #1f2937
+}
+
+.price-up{color:#22c55e;font-weight:bold}
+.price-down{color:#ef4444;font-weight:bold}
+.profit{color:#22c55e;font-weight:bold}
+.loss{color:#ef4444;font-weight:bold}
+
+input,textarea{
+  width:100%;padding:10px;border-radius:8px;
+  border:none;background:#020617;color:white
+}
+
+.ai-box{background:#020617;padding:12px;border-radius:10px;margin-top:10px}
+</style>
+</head>
+
+<body>
+
+<header>
+  Student <span>Stock Learning</span> Platform
+</header>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div class="card" id="loginCard">
+  <h3>🔐 Google Login</h3>
+  <input id="username" placeholder="Enter your name">
+  <button style="margin-top:10px" onclick="googleLogin()">Login with Google</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none">
+
+<div class="card">
+  <h3>👋 Welcome, <span id="userName"></span></h3>
+  <p>This is your personal stock learning dashboard.</p>
+</div>
+
+<div class="card">
+  <h3>💰 Balance: ₹<span id="balance">10000</span></h3>
+  <h4>P / L: <span id="pl">0</span></h4>
+</div>
+
+<div class="card">
+  <h3>📈 Stock Market</h3>
+  <div id="stockList"></div>
+</div>
+
+<div class="card">
+  <h3>📊 Portfolio</h3>
+  <div id="portfolio"></div>
+</div>
+
+<div class="card">
+  <h3>🤖 Google Gemini Assistant</h3>
+  <textarea id="aiQuestion" placeholder="Ask anything about stock market..."></textarea>
+  <button style="margin-top:8px" onclick="askGemini()">Ask Gemini</button>
+  <div class="ai-box" id="aiAnswer"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+/* LOGIN */
+function googleLogin(){
+  const name=document.getElementById("username").value.trim();
+  if(!name) return alert("Enter your name");
+  document.getElementById("userName").innerText=name;
+  document.getElementById("loginCard").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+}
+
+/* STOCK LOGIC */
+let balance=10000,startBalance=10000;
+const stocks=[
+  {name:"TCS",price:3500},
+  {name:"Infosys",price:1500},
+  {name:"Reliance",price:2800},
+  {name:"HDFC Bank",price:1600},
+  {name:"Tata Motors",price:900}
+];
+const portfolio={};
+
+const stockList=document.getElementById("stockList");
+const portfolioDiv=document.getElementById("portfolio");
+
+function loadMarket(){
+  stockList.innerHTML="";
+  stocks.forEach((s,i)=>{
+    stockList.innerHTML+=`
+      <div class="stock">
+        <span>${s.name}</span>
+        <span id="price_${i}">₹${s.price}</span>
+        <button onclick="buyStock(${i})">Buy</button>
+      </div>`;
+  });
+}
+loadMarket();
+
+function buyStock(i){
+  if(balance<stocks[i].price) return alert("Not enough balance");
+  balance-=stocks[i].price;
+  portfolio[stocks[i].name]=(portfolio[stocks[i].name]||0)+1;
+  updateUI();
+}
+
+function sellStock(name){
+  const s=stocks.find(x=>x.name===name);
+  portfolio[name]--;
+  balance+=s.price;
+  if(portfolio[name]===0) delete portfolio[name];
+  updateUI();
+}
+
+function updateUI(){
+  document.getElementById("balance").innerText=balance;
+  portfolioDiv.innerHTML="";
+  let total=balance;
+
+  for(let n in portfolio){
+    const s=stocks.find(x=>x.name===n);
+    total+=s.price*portfolio[n];
+    portfolioDiv.innerHTML+=`
+      <div class="stock">
+        ${n} × ${portfolio[n]}
+        <button class="sell" onclick="sellStock('${n}')">Sell</button>
+      </div>`;
+  }
+
+  const pl=total-startBalance;
+  const plEl=document.getElementById("pl");
+  plEl.innerText=pl>=0?`+₹${pl}`:`-₹${Math.abs(pl)}`;
+  plEl.className=pl>=0?"profit":"loss";
+}
+
+/* AUTO PRICE */
+setInterval(()=>{
+  stocks.forEach((s,i)=>{
+    const change=Math.floor(Math.random()*40-20);
+    s.price=Math.max(100,s.price+change);
+    const el=document.getElementById("price_"+i);
+    el.innerText="₹"+s.price;
+    el.className=change>=0?"price-up":"price-down";
+  });
+  updateUI();
+},2000);
+
+/* ================= SMART GEMINI ENGINE ================= */
+
+
+
+const GEMINI_KNOWLEDGE = [
+  {
+    keys:["stock","share","equity"],
+    level:"basic",
+    answers:[
+      "A stock represents ownership in a company.",
+      "When you buy a share, you become a part-owner of that business.",
+      "Stock prices depend on company performance and market sentiment."
+    ]
+  },
+  {
+    keys:["buy","purchase","invest"],
+    level:"basic",
+    answers:[
+      "Buying a stock means you expect the company to grow in future.",
+      "Good time to buy is when fundamentals are strong.",
+      "Long-term buying reduces risk compared to trading."
+    ]
+  },
+  {
+    keys:["sell","exit","book"],
+    level:"basic",
+    answers:[
+      "Selling stock is done to book profit or stop loss.",
+      "Always have a target and stop-loss before selling.",
+      "Emotional selling often leads to loss."
+    ]
+  },
+  {
+    keys:["profit","gain","return"],
+    level:"basic",
+    answers:[
+      "Profit occurs when selling price is higher than buying price.",
+      "Returns increase with patience and compounding.",
+      "Long-term investors usually earn stable profits."
+    ]
+  },
+  {
+    keys:["loss","negative","down"],
+    level:"basic",
+    answers:[
+      "Loss happens when stock price falls after buying.",
+      "Loss is part of learning in stock market.",
+      "Risk management helps control losses."
+    ]
+  },
+  {
+    keys:["risk","safe","danger"],
+    level:"intermediate",
+    answers:[
+      "Risk means uncertainty of losing capital.",
+      "Diversification reduces overall portfolio risk.",
+      "Never invest money you can't afford to lose."
+    ]
+  },
+  {
+    keys:["diversification","diversify","portfolio"],
+    level:"intermediate",
+    answers:[
+      "Diversification means investing in different sectors.",
+      "It protects portfolio from one-stock failure.",
+      "Mutual funds provide automatic diversification."
+    ]
+  },
+  {
+    keys:["ipo"],
+    level:"basic",
+    answers:[
+      "IPO is Initial Public Offering.",
+      "Company sells shares to public for the first time.",
+      "Not all IPOs are profitable; research is required."
+    ]
+  },
+  {
+    keys:["trading","intraday","short term"],
+    level:"advanced",
+    answers:[
+      "Trading focuses on short-term price movement.",
+      "Intraday trading is highly risky for beginners.",
+      "Trading requires discipline, charts, and strategy."
+    ]
+  },
+  {
+    keys:["long term","fundamental","investment"],
+    level:"advanced",
+    answers:[
+      "Long-term investing focuses on company fundamentals.",
+      "It benefits from compounding.",
+      "Best strategy for students and beginners."
+    ]
+  },
+  {
+    keys:["market","stock market","share market"],
+    level:"basic",
+    answers:[
+      "Stock market is a platform to buy and sell shares.",
+      "Prices move based on demand and supply.",
+      "News and results affect market sentiment."
+    ]
+  },
+  {
+    keys:["beginner","student","start"],
+    level:"basic",
+    answers:[
+      "Start with learning before investing.",
+      "Invest small amounts initially.",
+      "Avoid tips and focus on knowledge."
+    ]
+  }
+];
+
+function askGemini(){
+  const q=document.getElementById("aiQuestion").value.toLowerCase().trim();
+  const out=document.getElementById("aiAnswer");
+
+  if(!q){
+    out.innerHTML="❗ Ask any stock market related question.";
+    return;
+  }
+
+  let responses=[];
+
+  GEMINI_KNOWLEDGE.forEach(topic=>{
+    topic.keys.forEach(k=>{
+      if(q.includes(k)){
+        topic.answers.forEach(a=>{
+          responses.push("• "+a);
+        });
+      }
+    });
+  });
+
+  if(responses.length){
+    out.innerHTML=`
+      <b>🤖 Google Gemini Assistant</b><br>
+      <small>AI-powered stock education</small><br><br>
+      ${[...new Set(responses)].join("<br>")}
+    `;
+  }else{
+    out.innerHTML=`
+      <b>🤖 Google Gemini Assistant</b><br><br>
+      I can help with:<br>
+      • Buy / Sell<br>
+      • Profit / Loss<br>
+      • Risk / Diversification<br>
+      • IPO / Trading / Investment<br><br>
+      Try using those words in your question.
+    `;
+  }
+}
+</script>
+
+
+
+</body>
+</html>
